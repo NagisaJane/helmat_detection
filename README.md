@@ -38,9 +38,15 @@ pip install torch torchvision ultralytics albumentations opencv-python-headless 
 ```bash
 git clone <https://github.com/NagisaJane/helmat_detection/edit/main>
 cd X-AnyLabeling-main
+```
 ### 2) Create environment
 conda env create -f environment.yml
 conda activate torch_env_py310
+```
+or
+```
+pip install -r requirements.txt
+```
 ### 3) Prepare datasets
 Main PPE dataset: yolo_dataset01
 Adverse validation set:val_adverse
@@ -51,12 +57,16 @@ safety.yaml (path -> yolo_dataset01)
 safety_adverse.yaml (path -> yolo_dataset, val -> val_adverse/images)
 ### 4) Run all pipelines
 CMD
+```
 experiment_pack\00_run_all.bat
+```
 or step by step
+```
 experiment_pack\01_train_generator.bat
 experiment_pack\02_build_gan_dataset.bat
 experiment_pack\03_train_b0_b1.bat
 experiment_pack\04_train_b2_b3.bat
 experiment_pack\05_eval_val_adverse.bat
+```
 ### 5) Check results
 run/eval_val_adverse_summary.txt
