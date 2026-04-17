@@ -21,7 +21,13 @@ Evaluation is performed on an adverse-weather validation split (`val_adverse`).
   - opencv-python-headless
   - pyyaml
   - pillow
-## dataset link:https://drive.google.com/drive/folders/1igqO6dHc5E0-HXPvKNnuSk-uKldLtxoR?usp=drive_link
+### Create environment (Conda)
+conda env create -f environment.yml
+conda activate torch_env_py310
+
+### Or with pip
+pip install -r requirements.txt
+### dataset link:https://drive.google.com/drive/folders/1igqO6dHc5E0-HXPvKNnuSk-uKldLtxoR?usp=drive_link
 Install example:
 ```bash
 pip install torch torchvision ultralytics albumentations opencv-python-headless pyyaml pillow
