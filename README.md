@@ -49,12 +49,12 @@ or
 pip install -r requirements.txt
 ```
 ### 3) Prepare datasets
-Main PPE dataset: yolo_dataset01
-Adverse validation set:val_adverse
-GAN pretrain images (VOC sub1k):JPEGImages_sub1k
-Then edit:
+Main PPE dataset: yolo_dataset01  
+Adverse validation set:val_adverse  
+GAN pretrain images (VOC sub1k):JPEGImages_sub1k  
+Then edit:  
 
-safety.yaml (path -> yolo_dataset01)
+safety.yaml (path -> yolo_dataset01)  
 safety_adverse.yaml (path -> yolo_dataset, val -> val_adverse/images)
 ### 4) Run all pipelines
 CMD
