@@ -36,7 +36,7 @@ pip install torch torchvision ultralytics albumentations opencv-python-headless 
 
 ### 1) Clone
 ```bash
-git clone <https://github.com/NagisaJane/helmat_detection/edit/main>
+git clone <https://github.com/NagisaJane/helmat_detection>
 cd X-AnyLabeling-main
 ```
 ### 2) Create environment
