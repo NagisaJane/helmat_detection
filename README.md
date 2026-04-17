@@ -40,6 +40,7 @@ git clone <https://github.com/NagisaJane/helmat_detection/edit/main>
 cd X-AnyLabeling-main
 ```
 ### 2) Create environment
+```
 conda env create -f environment.yml
 conda activate torch_env_py310
 ```
