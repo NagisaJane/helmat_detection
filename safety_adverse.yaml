@@ -1,0 +1,7 @@
+path: C:/Users/Yang/Desktop/笔记———有关深度学习/SAGA0412/yolo_dataset
+train: train/images
+val: val_adverse/images
+
+names:
+  0: helmet
+  1: head

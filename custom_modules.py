@@ -100,3 +100,57 @@ class DySample(nn.Module):
         
         # 进行双线性采样
         return F.grid_sample(x, grid, mode='bilinear', padding_mode='zeros', align_corners=False)
+
+
+class HybridAttention(nn.Module):
+    """论文式混合注意力：通道分支（SE/CBAM 通道：Avg+Max 池化 + 共享 MLP）+ 空间分支（CBAM 空间：通道维 Avg/Max 拼接 + 卷积）。
+
+    与 Woo et al. CBAM 顺序一致：F' = Mc(F)⊙F，F'' = Ms(F')⊙F'。对应文中 Mc、Ms、逐元素乘 ⊙。
+    超参默认与文中表一致：通道压缩比 r=16，空间卷积核 3×3。
+    通道 MLP 按运行时真实通道数惰性构建，以兼容 YOLO 宽度缩放后 c 与 yaml 中 c1 不完全一致的情况。
+    输出端采用可学习门控融合，在“原特征”和“注意力特征”之间自适应平衡。
+    这比强残差更稳，通常更利于在不改训练参数时维持召回。
+    """
+
+    def __init__(self, c1, reduction=16, kernel_size=3):
+        super().__init__()
+        self.c1 = c1
+        self.reduction = reduction
+        self.kernel_size = kernel_size
+        self.avg_pool_c = nn.AdaptiveAvgPool2d(1)
+        self.max_pool_c = nn.AdaptiveMaxPool2d(1)
+        self.channel_mlp = None
+        self._last_c = None
+        pad = kernel_size // 2
+        self.spatial_conv = nn.Conv2d(2, 1, kernel_size, padding=pad, bias=False)
+        # alpha in [0, 1]: 0 -> identity, 1 -> fully attended
+        self.alpha = nn.Parameter(torch.tensor(0.5))
+
+    def _build_channel_mlp(self, x):
+        c = x.shape[1]
+        if self.channel_mlp is not None and self._last_c == c:
+            return
+        hidden = max(c // self.reduction, 1)
+        self.channel_mlp = nn.Sequential(
+            nn.Conv2d(c, hidden, 1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden, c, 1, bias=False),
+        ).to(device=x.device, dtype=x.dtype)
+        self._last_c = c
+
+    def forward(self, x):
+        x_in = x
+        self._build_channel_mlp(x)
+        # Mc(F)：AvgPool 与 MaxPool 经同一 MLP 再相加后 Sigmoid（CBAM 通道注意力）
+        mc = torch.sigmoid(
+            self.channel_mlp(self.avg_pool_c(x)) + self.channel_mlp(self.max_pool_c(x))
+        )
+        x = x * mc
+        # Ms(F')：在通道加权后的特征上做空间注意力（通道维 mean / max，拼接后卷积）
+        avg_s = torch.mean(x, dim=1, keepdim=True)
+        max_s, _ = torch.max(x, dim=1, keepdim=True)
+        ms = torch.sigmoid(self.spatial_conv(torch.cat([avg_s, max_s], dim=1)))
+        out = x * ms
+        # Learnable blend between identity and attended features.
+        a = torch.sigmoid(self.alpha)
+        return (1.0 - a) * x_in + a * out
