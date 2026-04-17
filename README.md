@@ -31,6 +31,7 @@ pip install -r requirements.txt
 Install example:
 ```bash
 pip install torch torchvision ultralytics albumentations opencv-python-headless pyyaml pillow
+```
 ## Reproducibility
 
 ### 1) Clone
